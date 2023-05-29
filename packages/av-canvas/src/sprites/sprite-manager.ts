@@ -36,6 +36,7 @@ export class SpriteManager {
   async addSprite<S extends BaseSprite>(s: S): Promise<void> {
     await s.initReady
     this.#sprites.push(s)
+    s.index = this.#sprites.length - 1
     this.#sprites = this.#sprites.sort((a, b) => a.zIndex - b.zIndex)
     s.audioNode?.connect(this.audioMSDest)
 
