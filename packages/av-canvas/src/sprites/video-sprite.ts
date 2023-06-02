@@ -8,6 +8,11 @@ interface IVideoSpriteOpts {
 export class VideoSprite extends BaseSprite {
   #videoEl: HTMLVideoElement | null = null
 
+  width = 0
+  height = 0
+  x = 0
+  y = 0
+
   constructor (name: string, source: MediaStream | File, opts: IVideoSpriteOpts = {}) {
     super(name)
     this.initReady = (source instanceof MediaStream
@@ -18,6 +23,12 @@ export class VideoSprite extends BaseSprite {
       this.rect.w = videoEl.videoWidth
       this.rect.h = videoEl.videoHeight
       this.#videoEl = videoEl
+      // this.name = name
+
+      // console.log("sll--------this.width = ", this.width)
+      // console.log("sll--------this.height = ", this.height)
+      // console.log("sll--------this.x = ", this.x)
+      // console.log("sll--------this.y = ", this.y)
 
       if (audioSource != null && opts.audioCtx != null) {
         this.audioNode = opts.audioCtx.createGain()
@@ -67,11 +78,32 @@ export class VideoSprite extends BaseSprite {
     return { videoEl, audioSource }
   }
 
+  updateRect (): void {
+    if (this.#videoEl == null) return
+    this.rect.w = this.#videoEl.videoWidth
+    this.rect.h = this.#videoEl.videoHeight
+    const factor =  Math.min(1600 / this.rect.w, 1080 / this.rect.h)
+    this.width = (this.name == "userMedia") ? 320 : this.rect.w * factor
+    this.height = (this.name == "userMedia") ? 180 : this.rect.h * factor
+    this.x = (this.name == "userMedia") ? 0 : 320 + (1600 - this.width) / 2
+    this.y = (this.name == "userMedia") ? 0 + 180 * this.index : (1080 - this.height) / 2
+  }
+
   render (ctx: CanvasRenderingContext2D): void {
     if (this.#videoEl == null) return
     super.render(ctx)
-    const { w, h } = this.rect
-    ctx.drawImage(this.#videoEl, -w / 2, -h / 2, w, h)
+    // const { w, h } = this.rect
+    this.updateRect()
+    // console.log("sll--------this.rect.w = ", this.rect.w)
+    // console.log("sll--------this.rect.h = ", this.rect.h)
+    // console.log("sll--------this.width = ", this.width)
+    // console.log("sll--------this.height = ", this.height)
+    // console.log("sll--------this.x = ", this.x)
+    // console.log("sll--------this.y = ", this.y)
+    // console.log("sll--------this.#videoEl.width = ", this.#videoEl.width)
+    // console.log("sll--------this.#videoEl.height = ", this.#videoEl.height)
+    ctx.drawImage(this.#videoEl, this.x, this.y, this.width, this.height)
+    // ctx.drawImage(this.#videoEl, -this.width / 2, -this.height / 2, this.width, this.height)
   }
 
   get volume (): number {

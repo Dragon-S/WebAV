@@ -142,7 +142,7 @@ function createVideoEncoder (
 
   const videoOpts = opts.video
   encoder.configure({
-    codec: 'avc1.42E01F',
+    codec: 'avc1.4D002A',
     framerate: videoOpts.expectFPS,
     hardwareAcceleration: 'prefer-hardware',
     // 码率
@@ -178,6 +178,9 @@ function encodeVideoFrame (
     while (true) {
       const { done, value: frame } = await reader.read()
       if (done) {
+        if (frame != null) {
+          frame.close()
+        }
         onEnded()
         return
       }
@@ -190,7 +193,10 @@ function encodeVideoFrame (
       const now = performance.now()
       const offsetTime = now - startTime
       // 避免帧率超出期望太高
-      if (frameCnt / offsetTime * 1000 > maxFPS) continue
+      if (frameCnt / offsetTime * 1000 > maxFPS) {
+        frame.close()
+        continue
+      }
 
       const vf = new VideoFrame(frame, {
         // timestamp 单位 微妙

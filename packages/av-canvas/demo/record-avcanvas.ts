@@ -1,7 +1,13 @@
 import { AVCanvas, AudioSprite, FontSprite, ImgSprite, VideoSprite } from '../src/index'
 import { AVRecorder } from '@webav/av-recorder'
 
-const avCvs = new AVCanvas(document.querySelector('#app') as HTMLElement, {
+// 创虚拟div用于视频布局
+const layout = document.createElement('div')
+layout.style.visibility = 'hidden'
+layout.style.width = 1920
+layout.style.height = 1080
+// document.querySelector('#app') as HTMLElement
+const avCvs = new AVCanvas(layout, {
   bgColor: '#333',
   resolution: {
     width: 1920,
@@ -17,9 +23,17 @@ console.log({ avCvs })
 })().catch(console.error)
 document.querySelector('#userMedia')?.addEventListener('click', () => {
   ;(async () => {
+    // const mediaStream = await navigator.mediaDevices.getUserMedia({
+    //   video: true,
+    //   audio: true
+    // })
     const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true
+      video: {
+        width: 1280,
+        height: 720,
+        deviceId: "19e8c66efe2ddf3d2eec39358cb35097b431d7ed3e1cd5d7451723b41d3096bc",
+      },
+      audio: true,
     })
     const vs = new VideoSprite('userMedia', mediaStream, {
       audioCtx: avCvs.spriteManager.audioCtx
@@ -98,8 +112,10 @@ document.querySelector('#startRecod')?.addEventListener('click', () => {
   ;(async () => {
     const writer = await createFileWriter('mp4')
     recorder = new AVRecorder(avCvs.captureStream(), {
-      width: 1280,
-      height: 720,
+      width: 1920,
+      height: 1080,
+      bitrate: 3_000_000,
+      expectFPS: 24,
       audioCodec: 'aac'
     })
     await recorder.start()
