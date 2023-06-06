@@ -31,6 +31,7 @@ document.querySelector('#userMedia')?.addEventListener('click', () => {
       video: {
         width: 1280,
         height: 720,
+        frameRate: 25,
         deviceId: "19e8c66efe2ddf3d2eec39358cb35097b431d7ed3e1cd5d7451723b41d3096bc",
       },
       audio: true,
@@ -45,7 +46,9 @@ document.querySelector('#userMedia')?.addEventListener('click', () => {
 document.querySelector('#display')?.addEventListener('click', () => {
   ;(async () => {
     const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
+      video: {
+        frameRate: 25,
+      },
       audio: true
     })
     const vs = new VideoSprite('display', mediaStream, {
@@ -115,7 +118,7 @@ document.querySelector('#startRecod')?.addEventListener('click', () => {
       width: 1920,
       height: 1080,
       bitrate: 3_000_000,
-      expectFPS: 24,
+      expectFPS: 25,
       audioCodec: 'aac'
     })
     await recorder.start()

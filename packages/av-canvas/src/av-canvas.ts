@@ -85,7 +85,7 @@ export class AVCanvas {
 
   captureStream (): MediaStream {
     const ms = new MediaStream()
-    this.#cvsEl.captureStream().getTracks().concat(
+    this.#cvsEl.captureStream(25).getTracks().concat(
       this.spriteManager.audioMSDest.stream.getTracks()
     ).forEach((t) => {
       ms.addTrack(t)
@@ -98,7 +98,7 @@ export class AVCanvas {
     const list = this.spriteManager.getSprites()
     list.forEach(r => r.render(cvsCtx))
 
-    cvsCtx.resetTransform()
+    // cvsCtx.resetTransform()
   }
 }
 
