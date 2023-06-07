@@ -1,6 +1,9 @@
 import { AVCanvas, AudioSprite, FontSprite, ImgSprite, VideoSprite } from '../src/index'
 import { AVRecorder } from '@webav/av-recorder'
 
+// 创建无序列表元素
+const unorderedList = document.getElementById('list');
+
 // 创虚拟div用于视频布局
 const layout = document.createElement('div')
 layout.style.visibility = 'hidden'
@@ -40,6 +43,13 @@ document.querySelector('#userMedia')?.addEventListener('click', () => {
       audioCtx: avCvs.spriteManager.audioCtx
     })
     await avCvs.spriteManager.addSprite(vs)
+
+    // 创建列表项元素
+    const listItem = document.createElement('li');
+    listItem.textContent = '摄像头视频';
+
+    // 将列表项添加到无序列表中
+    unorderedList.appendChild(listItem);
   })().catch(console.error)
 })
 
@@ -55,6 +65,13 @@ document.querySelector('#display')?.addEventListener('click', () => {
       audioCtx: avCvs.spriteManager.audioCtx
     })
     await avCvs.spriteManager.addSprite(vs)
+
+    // 创建列表项元素
+    const listItem = document.createElement('li');
+    listItem.textContent = '屏幕视频';
+
+    // 将列表项添加到无序列表中
+    unorderedList.appendChild(listItem);
   })().catch(console.error)
 })
 
@@ -129,6 +146,48 @@ document.querySelector('#stopRecod')?.addEventListener('click', () => {
   ;(async () => {
     await recorder?.stop()
     alert('save done')
+  })().catch(console.error)
+})
+
+document.querySelector('#removeCameraStream')?.addEventListener('click', () => {
+  ;(async () => {
+    const sprites = avCvs.spriteManager.getSprites();
+    for (let index = 0; index < sprites.length; index++) {
+      const sprite = sprites[index];
+      if (sprite.name == "userMedia") {
+        avCvs.spriteManager.removeSprite(sprite)
+        const listItems = document.querySelectorAll('li');
+        for (let index = 0; index < listItems.length; index++) {
+          const element = listItems[index];
+          if (element.textContent == '摄像头视频') {
+            element.remove();
+            break
+          }
+        }
+      }
+      break
+    }
+  })().catch(console.error)
+})
+
+document.querySelector('#removeDisplayStream')?.addEventListener('click', () => {
+  ;(async () => {
+    const sprites = avCvs.spriteManager.getSprites();
+    for (let index = 0; index < sprites.length; index++) {
+      const sprite = sprites[index];
+      if (sprite.name == "display") {
+        avCvs.spriteManager.removeSprite(sprite)
+        const listItems = document.querySelectorAll('li');
+        for (let index = 0; index < listItems.length; index++) {
+          const element = listItems[index];
+          if (element.textContent == '屏幕视频') {
+            element.remove();
+            break
+          }
+        }
+      }
+      break
+    }
   })().catch(console.error)
 })
 
