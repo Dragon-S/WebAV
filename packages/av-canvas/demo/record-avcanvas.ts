@@ -24,12 +24,8 @@ console.log({ avCvs })
   // const is = new ImgSprite('img', 'https://neo-pages.bilibili.com/bbfe/neo/assets/img/neo-pages-overview.48f7bb81.png')
   // await avCvs.spriteManager.addSprite(is)
 })().catch(console.error)
-document.querySelector('#userMedia')?.addEventListener('click', () => {
+document.querySelector('#camera-micphone')?.addEventListener('click', () => {
   ;(async () => {
-    // const mediaStream = await navigator.mediaDevices.getUserMedia({
-    //   video: true,
-    //   audio: true
-    // })
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
         width: 1280,
@@ -46,7 +42,52 @@ document.querySelector('#userMedia')?.addEventListener('click', () => {
 
     // 创建列表项元素
     const listItem = document.createElement('li');
+    listItem.textContent = '摄像头视频+麦克风';
+
+    // 将列表项添加到无序列表中
+    unorderedList.appendChild(listItem);
+  })().catch(console.error)
+})
+
+document.querySelector('#camera')?.addEventListener('click', () => {
+  ;(async () => {
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: 1280,
+        height: 720,
+        frameRate: 25,
+        deviceId: "19e8c66efe2ddf3d2eec39358cb35097b431d7ed3e1cd5d7451723b41d3096bc",
+      },
+      audio: false,
+    })
+    const vs = new VideoSprite('userMedia', mediaStream, {
+      audioCtx: avCvs.spriteManager.audioCtx
+    })
+    await avCvs.spriteManager.addSprite(vs)
+
+    // 创建列表项元素
+    const listItem = document.createElement('li');
     listItem.textContent = '摄像头视频';
+
+    // 将列表项添加到无序列表中
+    unorderedList.appendChild(listItem);
+  })().catch(console.error)
+})
+
+document.querySelector('#micphone')?.addEventListener('click', () => {
+  ;(async () => {
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: false,
+      audio: true
+    })
+    const vs = new AudioSprite('micphone', mediaStream, {
+      audioCtx: avCvs.spriteManager.audioCtx
+    })
+    await avCvs.spriteManager.addSprite(vs)
+
+    // 创建列表项元素
+    const listItem = document.createElement('li');
+    listItem.textContent = '麦克风音频';
 
     // 将列表项添加到无序列表中
     unorderedList.appendChild(listItem);
@@ -115,7 +156,7 @@ document.querySelector('#localAudio')?.addEventListener('click', () => {
         }
       }]
     })
-    const as = new AudioSprite('vs', await imgFH.getFile())
+    const as = new AudioSprite('as', await imgFH.getFile())
     await avCvs.spriteManager.addSprite(as)
   })().catch(console.error)
 })
