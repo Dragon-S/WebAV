@@ -99,7 +99,10 @@ function encodeVideoFrame (expectFPS: number, encode: VideoEncoder['encode']) {
     const now = performance.now()
     const offsetTime = now - startTime
     // 避免帧率超出期望太高
-    if ((frameCnt / offsetTime) * 1000 > maxFPS) return
+    if ((frameCnt / offsetTime) * 1000 > maxFPS) {
+      frame.close()
+      return
+    }
 
     const vf = new VideoFrame(frame, {
       // timestamp 单位 微妙

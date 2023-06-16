@@ -278,7 +278,7 @@ function createVideoEncoder (
 
   const videoOpts = opts.video
   encoder.configure({
-    codec: 'avc1.42E01F',
+    codec: 'avc1.640029',
     framerate: videoOpts.expectFPS,
     // hardwareAcceleration: 'prefer-hardware',
     // 码率

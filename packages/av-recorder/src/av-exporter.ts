@@ -15,7 +15,7 @@ export async function exportWebM (
 ): Promise<() => void> {
   const recoder = new MediaRecorder(inputMediaStream, {
     ...recordOpts,
-    mimeType: 'video/webm;codecs=avc1.64001f,opus'
+    mimeType: 'video/webm;codecs=avc1.640029,opus'
   })
   let firstBlob: Blob | null = null
   recoder.ondataavailable = async (evt) => {
