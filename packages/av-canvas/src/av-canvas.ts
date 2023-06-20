@@ -4,6 +4,7 @@ import { SpriteManager } from './sprites/sprite-manager'
 // import { draggabelSprite } from './sprites/sprite-op'
 import { IResolution } from './types'
 import { createEl } from './utils'
+import { clearInterval, setInterval } from 'worker-timers'
 
 function createInitCvsEl (resolution: IResolution): HTMLCanvasElement {
   const cvsEl = createEl('canvas') as HTMLCanvasElement
@@ -25,6 +26,8 @@ export class AVCanvas {
   #cvsCtx: CanvasRenderingContext2D
 
   #destroyed = false
+
+  #intervalId = 0
 
   #clears: Array<() => void> = []
 
@@ -69,14 +72,16 @@ export class AVCanvas {
       this.#cvsCtx.fillStyle = opts.bgColor
       this.#cvsCtx.fillRect(0, 0, opts.resolution.width, opts.resolution.height)
       this.#render()
-      requestAnimationFrame(loop)
     }
-    loop()
+    this.#intervalId = setInterval(() => {
+      loop()
+    }, Math.floor(1000 / 25));
 
     // ;(window as any).cvsEl = this.#cvsEl
   }
 
   destroy (): void {
+    clearInterval(this.#intervalId);
     this.#destroyed = true
     this.#cvsEl.remove()
     this.#clears.forEach(fn => fn())
