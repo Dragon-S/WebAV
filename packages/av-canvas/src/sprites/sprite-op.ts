@@ -1,6 +1,6 @@
 import { SpriteManager } from './sprite-manager'
 import { ICvsRatio, IPoint } from '../types'
-import { BaseSprite, Rect, TCtrlKey } from '@webav/av-cliper'
+import { BaseSprite, Rect, TCtrlKey } from 'avrecorder-cliper'
 
 /**
  * 让canvas中的sprite可以被拖拽移动

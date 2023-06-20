@@ -1,5 +1,5 @@
 import { AVCanvas, AudioSprite, FontSprite, ImgSprite, VideoSprite } from '../src/index'
-import { AVRecorder } from '@webav/av-recorder'
+import { AVRecorder } from 'avrecorder-recorder'
 
 // 创建无序列表元素
 const unorderedList = document.getElementById('list');

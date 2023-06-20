@@ -1,5 +1,5 @@
 import mp4box from 'mp4box'
-import { autoReadStream, file2stream, recodemux } from '@webav/av-cliper'
+import { autoReadStream, file2stream, recodemux } from 'avrecorder-cliper'
 import { TClearFn, EWorkerMsg, IWorkerOpts } from './types'
 
 if (import.meta.env.DEV) {

@@ -5,14 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "av-canvas",
+      "name": "avrecorder-canvas",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/lerna",
       "runtimeArgs": [
         "exec",
         "--scope",
-        "@webav/av-canvas",
+        "avrecorder-canvas",
         "--",
         "node"
       ],
@@ -24,14 +24,14 @@
       "internalConsoleOptions": "neverOpen",
     },
     {
-      "name": "av-cliper",
+      "name": "avrecorder-cliper",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/lerna",
       "runtimeArgs": [
         "exec",
         "--scope",
-        "@webav/av-cliper",
+        "avrecorder-cliper",
         "--",
         "node"
       ],

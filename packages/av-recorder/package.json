@@ -1,12 +1,12 @@
 {
-  "name": "@webav/av-recorder",
-  "version": "0.1.24",
+  "name": "avrecorder-recorder",
+  "version": "0.1.25",
   "private": false,
-  "repository": "https://github.com/hughfenghen/WebAV",
+  "repository": "https://github.com/Dragon-S/WebAV",
   "type": "module",
   "types": "dist/av-recorder.d.ts",
-  "module": "dist/av-recorder.js",
-  "main": "dist/av-recorder.umd.cjs",
+  "module": "dist/avrecorder-recorder.js",
+  "main": "dist/avrecorder-recorder.umd.cjs",
   "scripts": {
     "dev": "vite demo",
     "test": "vitest",
@@ -31,7 +31,7 @@
     "vitest": "^0.29.7"
   },
   "dependencies": {
-    "@webav/av-cliper": "^0.1.24",
+    "avrecorder-cliper": "^0.1.25",
     "fix-webm-duration": "^1.0.5",
     "mp4box": "hughfenghen/mp4box.js"
   }

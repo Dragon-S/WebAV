@@ -1,5 +1,5 @@
 import { EventTool } from '../event-tool'
-import { BaseSprite } from '@webav/av-cliper'
+import { BaseSprite } from 'avrecorder-cliper'
 
 export enum ESpriteManagerEvt {
   ActiveSpriteChange = 'activeSpriteChange',

@@ -1,5 +1,5 @@
 import { createEl } from '../utils'
-import { BaseSprite } from '@webav/av-cliper'
+import { BaseSprite } from 'avrecorder-cliper'
 
 interface IAudioSpriteOpts {
   audioCtx?: AudioContext

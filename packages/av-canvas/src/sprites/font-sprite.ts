@@ -1,4 +1,4 @@
-import { renderTxt2Img, BaseSprite } from '@webav/av-cliper'
+import { renderTxt2Img, BaseSprite } from 'avrecorder-cliper'
 
 interface IFontStyle {
   color: string

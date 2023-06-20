@@ -1,18 +1,18 @@
 # AVCanvas
 
-Combine Text, Image, Video, Audio, UserMedia, DisplayMedia to generate MediaStream.  
-With [AVRcorder](../av-recorder/README.md) you can output MP4 streams and save them as local files or push them to the server.  
+Combine Text, Image, Video, Audio, UserMedia, DisplayMedia to generate MediaStream.
+With [AVRcorder](../av-recorder/README.md) you can output MP4 streams and save them as local files or push them to the server.
 
-使用文字、图片、音视频文件、摄像头&麦克风、分享屏幕来生成 MediaStream。  
-配合 [AVRcorder](../av-recorder/README.md) 可以输出 MP4 流，然后保存为本地文件或推送至服务器。  
+使用文字、图片、音视频文件、摄像头&麦克风、分享屏幕来生成 MediaStream。
+配合 [AVRcorder](../av-recorder/README.md) 可以输出 MP4 流，然后保存为本地文件或推送至服务器。
 
 ## Example
-Record a video tutorial, add camera, micphone and screen to the canvas, then export mp4 and save as mp4 file.  
-录制视频教程，在画布中添加 camera、micphone 和屏幕，然后导出mp4保存为mp4文件。  
+Record a video tutorial, add camera, micphone and screen to the canvas, then export mp4 and save as mp4 file.
+录制视频教程，在画布中添加 camera、micphone 和屏幕，然后导出mp4保存为mp4文件。
 
 ```ts
-import { AVCanvas, VideoSprite } from '@webav/av-canvas'
-import { AVRecorder } from '@webav/av-recorder'
+import { AVCanvas, VideoSprite } from 'avrecorder-canvas'
+import { AVRecorder } from 'avrecorder-recorder'
 
 const avCvs = new AVCanvas(document.querySelector('#app') as HTMLElement, {
   bgColor: '#333',
@@ -60,5 +60,5 @@ recorder.stop()
 ```
 
 ## Demo
-[Record AVCanvas](https://hughfenghen.github.io/WebAV/demo/record-avcanvas.html)  
-[Demo code](demo/record-avcanvas.ts)  
+[Record AVCanvas](https://github.com/Dragon-S/WebAV/demo/record-avcanvas.html)
+[Demo code](demo/record-avcanvas.ts)

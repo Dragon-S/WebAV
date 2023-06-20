@@ -1,4 +1,4 @@
-// import { Rect, TCtrlKey } from '@webav/av-cliper'
+// import { Rect, TCtrlKey } from 'avrecorder-cliper'
 // import { renderCtrls } from './sprites/render-ctrl'
 import { SpriteManager } from './sprites/sprite-manager'
 // import { draggabelSprite } from './sprites/sprite-op'
