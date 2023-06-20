@@ -22,6 +22,6 @@ This is an experimental project that tries to provide an easy-to-use API for pro
   录制 MediaStream，导出 MP4 流。
 
 ## Publish npm
-- 发布npm
-  npm publish --access public
-  npm publish --force --access publick
+- 发布npm \
+  `npm publish --access public` \
+  `npm publish --force --access public`
