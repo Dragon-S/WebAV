@@ -1,8 +1,8 @@
 // import { Rect, TCtrlKey } from 'avrecorder-cliper'
 // import { renderCtrls } from './sprites/render-ctrl'
-import { SpriteManager } from './sprites/sprite-manager'
+import { SpriteManager , ESpriteManagerEvt } from './sprites/sprite-manager'
 // import { draggabelSprite } from './sprites/sprite-op'
-import { IResolution } from './types'
+import { IResolution, AVCanvasLayoutMode } from './types'
 import { createEl } from './utils'
 import { clearInterval, setInterval } from 'worker-timers'
 
@@ -19,6 +19,8 @@ function createInitCvsEl (resolution: IResolution): HTMLCanvasElement {
 }
 
 export class AVCanvas {
+  #layoutMode: AVCanvasLayoutMode
+
   #cvsEl: HTMLCanvasElement
 
   spriteManager: SpriteManager
@@ -31,18 +33,31 @@ export class AVCanvas {
 
   #clears: Array<() => void> = []
 
-  constructor (container: HTMLElement, opts: {
+  constructor (container: HTMLElement | null, opts: {
     resolution: IResolution
     bgColor: string
+    sidebarBgColor: string
+    layoutMode: AVCanvasLayoutMode
   }) {
     this.#cvsEl = createInitCvsEl(opts.resolution)
     const ctx = this.#cvsEl.getContext('2d', { alpha: false })
     if (ctx == null) throw Error('canvas context is null')
     this.#cvsCtx = ctx
-    container.appendChild(this.#cvsEl)
+    container?.appendChild(this.#cvsEl)
 
     // Rect.CTRL_SIZE = 14 / (this.#cvsEl.clientWidth / this.#cvsEl.width)
     this.spriteManager = new SpriteManager()
+
+    this.#layoutMode = opts.layoutMode
+
+    // 更新视频的layout
+    this.spriteManager.on(ESpriteManagerEvt.UpdateLayout, () => {
+      // 获取layout的模式
+      // 获取整个画布宽高
+      // 获取小视频的宽高
+      // 计算每个小视频的位置
+      this.#clears.forEach(fn => fn())
+    })
 
     // this.#clears.push(
     //   // 鼠标样式、控制 sprite 依赖 activeSprite，
@@ -68,6 +83,13 @@ export class AVCanvas {
 
     const loop = (): void => {
       if (this.#destroyed) return
+
+      if (this.#layoutMode === AVCanvasLayoutMode.SIDEBYSIDE
+        || this.#layoutMode === AVCanvasLayoutMode.SPEAKER) {
+        this.#cvsCtx.fillStyle = opts.sidebarBgColor
+        this.#cvsCtx.fillRect(0, 0, opts.resolution.width, opts.resolution.height)
+        this.#render()
+      }
 
       this.#cvsCtx.fillStyle = opts.bgColor
       this.#cvsCtx.fillRect(0, 0, opts.resolution.width, opts.resolution.height)
@@ -96,6 +118,10 @@ export class AVCanvas {
       ms.addTrack(t)
     })
     return ms
+  }
+
+  updateLayoutMode (mode: AVCanvasLayoutMode): void {
+    this.#layoutMode = mode
   }
 
   #render (): void {

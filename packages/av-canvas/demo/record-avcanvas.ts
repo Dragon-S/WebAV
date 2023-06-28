@@ -4,13 +4,7 @@ import { AVRecorder } from 'avrecorder-recorder'
 // 创建无序列表元素
 const unorderedList = document.getElementById('list');
 
-// 创虚拟div用于视频布局
-const layout = document.createElement('div')
-layout.style.visibility = 'hidden'
-layout.style.width = 1920
-layout.style.height = 1080
-// document.querySelector('#app') as HTMLElement
-const avCvs = new AVCanvas(layout, {
+const avCvs = new AVCanvas(null, {
   bgColor: '#333',
   resolution: {
     width: 1920,

@@ -12,7 +12,7 @@ export class AudioSprite extends BaseSprite {
   readonly visible = false
 
   constructor (name: string, source: MediaStream | File, opts: IAudioSpriteOpts = {}) {
-    super(name)
+    super(name, null)
     this.initReady = (source instanceof MediaStream
       ? this.#init4MS(source, opts)
       : this.#init4File(source, opts)

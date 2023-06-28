@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AVCanvas</title>
+
+  <style>
+    #app {
+      width: 1920px;
+      height: 1080px;
+      /* margin: 50px 50px; */
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  Add Resource：
+  <button id="camera-micphone">Camera & Micphone</button>
+  <button id="camera">Camera</button>
+  <button id="micphone">Micphone</button>
+  <button id="display">Share screen</button>
+  <button id="localImg">Image</button>
+  <button id="localVideo">Video</button>
+  <button id="localAudio">Audio</button>
+  <button id="fontExamp">Font</button>
+  <hr />
+  <button id="startRecod">Start Recod</button>&nbsp;
+  <button id="stopRecod">Stop Recod</button>
+  <button id="removeCameraStream">RemoveCameraStream</button>
+  <button id="removeDisplayStream">RemoveDisplayStream</button>
+  <script type="module" src="local-record.ts"></script>
+  <hr />
+  <div id="list-container" class="list-container">
+    <ul id="list" class="list">
+    </ul>
+  </div>
+</body>
+
+</html>

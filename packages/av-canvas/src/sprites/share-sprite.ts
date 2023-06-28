@@ -1,11 +1,11 @@
 import { createEl } from '../utils'
 import { BaseSprite } from 'avrecorder-cliper'
 
-interface IVideoSpriteOpts {
+interface IShareSpriteOpts {
   audioCtx?: AudioContext
 }
 
-export class VideoSprite extends BaseSprite {
+export class ShareSprite extends BaseSprite {
   #videoEl: HTMLVideoElement | null = null
 
   width = 0
@@ -13,7 +13,7 @@ export class VideoSprite extends BaseSprite {
   x = 0
   y = 0
 
-  constructor (name: string, source: MediaStream | File, opts: IVideoSpriteOpts = {}) {
+  constructor (name: string, source: MediaStream | File, opts: IShareSpriteOpts = {}) {
     super(name, null)
     this.initReady = (source instanceof MediaStream
       ? this.#init4MS(source, opts)
@@ -31,7 +31,7 @@ export class VideoSprite extends BaseSprite {
     })
   }
 
-  async #init4MS (ms: MediaStream, opts: IVideoSpriteOpts): Promise<{
+  async #init4MS (ms: MediaStream, opts: IShareSpriteOpts): Promise<{
     videoEl: HTMLVideoElement
     audioSource: AudioNode | null
   }> {
@@ -53,7 +53,7 @@ export class VideoSprite extends BaseSprite {
     return { videoEl, audioSource }
   }
 
-  async #init4File (videoFile: File, opts: IVideoSpriteOpts): Promise<{
+  async #init4File (videoFile: File, opts: IShareSpriteOpts): Promise<{
     videoEl: HTMLVideoElement
     audioSource: AudioNode | null
   }> {

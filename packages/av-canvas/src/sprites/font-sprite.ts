@@ -10,7 +10,7 @@ export class FontSprite extends BaseSprite {
   #img: HTMLImageElement
 
   constructor (name: string, content: string, style: Partial<IFontStyle> = {}) {
-    super(name)
+    super(name, null)
     const s = {
       color: '#ffffff',
       size: 100,

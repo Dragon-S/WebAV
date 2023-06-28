@@ -1,6 +1,6 @@
 import { BaseSprite } from 'avrecorder-cliper'
 
-export class ImgSprite extends BaseSprite {
+export class NoneSprite extends BaseSprite {
   #img: HTMLImageElement = new Image()
 
   constructor (name: string, source: File | string) {

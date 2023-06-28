@@ -3,7 +3,8 @@ import { BaseSprite } from 'avrecorder-cliper'
 
 export enum ESpriteManagerEvt {
   ActiveSpriteChange = 'activeSpriteChange',
-  AddSprite = 'addSprite'
+  AddSprite = 'addSprite',
+  UpdateLayout = 'updateLayout'
 }
 
 export class SpriteManager {
@@ -14,6 +15,7 @@ export class SpriteManager {
   #evtTool = new EventTool<{
     [ESpriteManagerEvt.AddSprite]: (s: BaseSprite) => void
     [ESpriteManagerEvt.ActiveSpriteChange]: (s: BaseSprite | null) => void
+    [ESpriteManagerEvt.UpdateLayout]: (s: BaseSprite | null) => void
   }>()
 
   audioCtx = new AudioContext()
@@ -41,11 +43,54 @@ export class SpriteManager {
     s.audioNode?.connect(this.audioMSDest)
 
     this.#evtTool.emit(ESpriteManagerEvt.AddSprite, s)
+
+    // 根据布局参数计算sprite的位置和大小
   }
 
   removeSprite (spr: BaseSprite): void {
     this.#sprites = this.#sprites.filter(s => s !== spr)
     spr.destroy()
+  }
+
+  removeSpriteByUuid (uuid: string): void {
+    const s = this.#sprites.find(s => s.uuid === uuid)
+    if (s == null) return
+    this.#sprites = this.#sprites.filter(s => s.uuid !== uuid)
+    s.destroy()
+  }
+
+  updateSpriteIndexByUuid (uuid: string, index: number): void {
+    const s = this.#sprites.find(s => s.uuid === uuid)
+    if (s == null) return
+    s.index = index
+  }
+
+  updateSpriteNameByUuid (uuid: string, name: string): void {
+    const s = this.#sprites.find(s => s.uuid === uuid)
+    if (s == null) return
+    s.name = name
+  }
+
+  updateSpriteIconByUuid (uuid: string, icon: HTMLImageElement): void {
+    const s = this.#sprites.find(s => s.uuid === uuid)
+    if (s == null) return
+    s.icon = icon
+  }
+
+  updateSpriteActivationStatusByUuid (uuid: string, active: boolean): void {
+    const s = this.#sprites.find(s => s.uuid === uuid)
+    if (s == null) return
+    s.active = active
+  }
+
+  updateSpritesRect (): void {
+    // 获取
+    this.#sprites.forEach((sprite: BaseSprite) => {
+      sprite.rect.x = sprite.icon?.offsetLeft ?? 0
+      sprite.rect.y = sprite.icon?.offsetTop ?? 0
+      sprite.rect.w = sprite.icon?.offsetWidth ?? 0
+      sprite.rect.h = sprite.icon?.offsetHeight ?? 0
+    })
   }
 
   getSprites (): BaseSprite[] {

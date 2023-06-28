@@ -14,10 +14,30 @@ type TKeyFrameOpts = Partial<
   Record<`${number}%` | 'from' | 'to', Partial<TAnimateProps>>
 >
 
-export abstract class BaseSprite {
-  rect = new Rect()
+function generateUniqueId(length: number): string {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
 
-  index = 0
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
+}
+
+export abstract class BaseSprite {
+  readonly uuid: string = generateUniqueId(10)
+
+  name: string
+
+  icon: HTMLImageElement | null
+
+  index: number = 0
+
+  active: boolean = false
+
+  rect = new Rect()
 
   visible = true
 
@@ -35,7 +55,10 @@ export abstract class BaseSprite {
 
   initReady = Promise.resolve()
 
-  constructor (public name: string) {}
+  constructor (public name_: string, public icon_: HTMLImageElement | null) {
+    this.name = name_
+    this.icon = icon_
+  }
 
   render (
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D

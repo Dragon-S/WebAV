@@ -15,7 +15,7 @@ export class OffscreenSprite extends BaseSprite {
   duration = Infinity
 
   constructor (name: string, clip: IClip) {
-    super(name)
+    super(name, null)
     this.#clip = clip
     this.ready = clip.ready.then(({ width, height, duration }) => {
       this.rect.w = width
