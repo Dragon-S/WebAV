@@ -3,8 +3,8 @@ import { BaseSprite } from 'avrecorder-cliper'
 export class ImgSprite extends BaseSprite {
   #img: HTMLImageElement = new Image()
 
-  constructor (name: string, source: File | string) {
-    super(name, null)
+  constructor (name: string, icon: File | string, source: File | string) {
+    super(name, icon)
 
     if (
       source instanceof File &&

@@ -11,8 +11,8 @@ export class AudioSprite extends BaseSprite {
   // 音频节点没有可视内容
   readonly visible = false
 
-  constructor (name: string, source: MediaStream | File, opts: IAudioSpriteOpts = {}) {
-    super(name, null)
+  constructor (name: string, icon: File | string, source: MediaStream | File, opts: IAudioSpriteOpts = {}) {
+    super(name, icon)
     this.initReady = (source instanceof MediaStream
       ? this.#init4MS(source, opts)
       : this.#init4File(source, opts)

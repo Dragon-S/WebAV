@@ -23,6 +23,22 @@ export class AVCanvas {
 
   #cvsEl: HTMLCanvasElement
 
+  #sidebarWidth:number = 320
+
+  #mainAreaRect: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+
+  #sidebarAreaRect: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+
   spriteManager: SpriteManager
 
   #cvsCtx: CanvasRenderingContext2D
@@ -49,6 +65,25 @@ export class AVCanvas {
     this.spriteManager = new SpriteManager()
 
     this.#layoutMode = opts.layoutMode
+
+    this.#mainAreaRect = {
+      x: 0,
+      y: 0,
+      width: opts.resolution.width,
+      height: opts.resolution.height
+    }
+
+    this.#sidebarAreaRect = {
+      x: this.#mainAreaRect.x + this.#mainAreaRect.width,
+      y: 0,
+      width: this.#sidebarWidth,
+      height: opts.resolution.height
+    }
+
+    if (this.#layoutMode === AVCanvasLayoutMode.SIDEBYSIDE ||
+        this.#layoutMode === AVCanvasLayoutMode.SPEAKER) {
+      this.#mainAreaRect.width = opts.resolution.width - this.#sidebarWidth
+    }
 
     // 更新视频的layout
     this.spriteManager.on(ESpriteManagerEvt.UpdateLayout, () => {
@@ -120,8 +155,41 @@ export class AVCanvas {
     return ms
   }
 
+  #updateSpriteRect (): void {
+
+  }
+
+  #existSharedSprite (): boolean {
+
+  }
+
   updateLayoutMode (mode: AVCanvasLayoutMode): void {
+    if (this.#layoutMode === mode) return
+
     this.#layoutMode = mode
+
+    // 计算各个sprite的大小和位置
+    switch (mode) {
+      case AVCanvasLayoutMode.SIDEBYSIDE: {
+        // 如果只有一个sprite，则将这个sprite显示在全屏
+        if (this.spriteManager.getSprites().length === 1) {
+          this.#mainAreaRect.width = this.#cvsEl.width
+          break
+        }
+        // 如果有共享sprite则共享sprite在显示main区域，
+        // 如果没有共享sprite则激活的sprite在显示在main区域
+        if (this.#existSharedSprite()) {
+          this.#mainAreaRect.width = this.#cvsEl.width - this.#sidebarWidth
+          break
+        } else {
+
+        }
+        // 如果有共享设置宫格无效
+        // 如果没有共享设置悬浮无效
+        break
+      }
+    }
+    this.#spriteManager.getSprites().forEach(s => s.updateLayout())
   }
 
   #render (): void {

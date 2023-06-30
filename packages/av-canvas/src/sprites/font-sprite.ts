@@ -9,8 +9,8 @@ interface IFontStyle {
 export class FontSprite extends BaseSprite {
   #img: HTMLImageElement
 
-  constructor (name: string, content: string, style: Partial<IFontStyle> = {}) {
-    super(name, null)
+  constructor (name: string, icon: File | string, content: string, style: Partial<IFontStyle> = {}) {
+    super(name, icon)
     const s = {
       color: '#ffffff',
       size: 100,

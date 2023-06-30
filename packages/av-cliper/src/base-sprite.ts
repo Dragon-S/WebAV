@@ -29,13 +29,20 @@ function generateUniqueId(length: number): string {
 export abstract class BaseSprite {
   readonly uuid: string = generateUniqueId(10)
 
-  name: string
+  name: string | null = null
 
-  icon: HTMLImageElement | null
+  icon: File | string | null = null
 
   index: number = 0
 
   active: boolean = false
+
+  externalRect: {
+    x: number
+    y: number
+    w: number
+    h: number
+  }
 
   rect = new Rect()
 
@@ -55,7 +62,13 @@ export abstract class BaseSprite {
 
   initReady = Promise.resolve()
 
-  constructor (public name_: string, public icon_: HTMLImageElement | null) {
+  constructor (public name_: string, public icon_: File | string) {
+    this.externalRect = {
+      x: 0,
+      y: 0,
+      w: 0,
+      h: 0
+    }
     this.name = name_
     this.icon = icon_
   }
@@ -81,6 +94,10 @@ export abstract class BaseSprite {
     // ctx.rotate((this.flip == null ? 1 : -1) * angle)
 
     ctx.globalAlpha = this.opacity
+  }
+
+  updateExternalRect (rect: { x: number; y: number; w: number; h: number }): void {
+    this.externalRect = rect
   }
 
   setAnimation (keyFrame: TKeyFrameOpts, opts: IAnimationOpts): void {

@@ -71,7 +71,7 @@ export class SpriteManager {
     s.name = name
   }
 
-  updateSpriteIconByUuid (uuid: string, icon: HTMLImageElement): void {
+  updateSpriteIconByUuid (uuid: string, icon: File | string): void {
     const s = this.#sprites.find(s => s.uuid === uuid)
     if (s == null) return
     s.icon = icon
@@ -86,10 +86,7 @@ export class SpriteManager {
   updateSpritesRect (): void {
     // 获取
     this.#sprites.forEach((sprite: BaseSprite) => {
-      sprite.rect.x = sprite.icon?.offsetLeft ?? 0
-      sprite.rect.y = sprite.icon?.offsetTop ?? 0
-      sprite.rect.w = sprite.icon?.offsetWidth ?? 0
-      sprite.rect.h = sprite.icon?.offsetHeight ?? 0
+      console.log(sprite)
     })
   }
 

@@ -56,26 +56,26 @@ export class AVLocalRecord {
   }
 
   #createSprite (name: string,
-    icon: HTMLImageElement,
+    icon: File | string,
     stream: MediaStream,
     streamType: AVLocalRecordStreamType): BaseSprite {
     if (streamType == AVLocalRecordStreamType.AUDIO) {
-      const audioSprite = new AudioSprite(name, stream, {
+      const audioSprite = new AudioSprite(name, icon, stream, {
         audioCtx: this.#avcanvas.spriteManager.audioCtx
       })
       return audioSprite
     } else if (streamType == AVLocalRecordStreamType.VIDEO) {
-      const videoSprite = new VideoSprite(name, stream, {
+      const videoSprite = new VideoSprite(name, icon, stream, {
         audioCtx: this.#avcanvas.spriteManager.audioCtx
       })
       return videoSprite
     } else if (streamType == AVLocalRecordStreamType.SHARE) {
-      const shareSprite = new ShareSprite(name, stream, {
+      const shareSprite = new ShareSprite(name, icon, stream, {
         audioCtx: this.#avcanvas.spriteManager.audioCtx
       })
       return shareSprite
     } else {
-      const noneSprite = new NoneSprite(name, icon.src)
+      const noneSprite = new NoneSprite(name, icon)
       return noneSprite
     }
   }
@@ -114,7 +114,7 @@ export class AVLocalRecord {
   }
 
   addSprite (name: string,
-    icon: HTMLImageElement,
+    icon: File | string,
     stream: MediaStream,
     streamType: AVLocalRecordStreamType): string {
     const sprite = this.#createSprite(name, icon, stream, streamType)
@@ -135,11 +135,15 @@ export class AVLocalRecord {
     this.#avcanvas.spriteManager.updateSpriteNameByUuid(uuid, name)
   }
 
-  updateSpriteIconByUuid (uuid: string, icon: HTMLImageElement): void {
+  updateSpriteIconByUuid (uuid: string, icon: File | string): void {
     this.#avcanvas.spriteManager.updateSpriteIconByUuid(uuid, icon)
   }
 
   updateSpriteActivationStatusByUuid (uuid: string, active: boolean): void {
     this.#avcanvas.spriteManager.updateSpriteActivationStatusByUuid(uuid, active)
+  }
+
+  destroy (): void {
+    this.#avcanvas.destroy()
   }
 }

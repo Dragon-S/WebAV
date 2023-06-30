@@ -8,13 +8,8 @@ interface IShareSpriteOpts {
 export class ShareSprite extends BaseSprite {
   #videoEl: HTMLVideoElement | null = null
 
-  width = 0
-  height = 0
-  x = 0
-  y = 0
-
-  constructor (name: string, source: MediaStream | File, opts: IShareSpriteOpts = {}) {
-    super(name, null)
+  constructor (name: string, icon: File | string, source: MediaStream | File, opts: IShareSpriteOpts = {}) {
+    super(name, icon)
     this.initReady = (source instanceof MediaStream
       ? this.#init4MS(source, opts)
       : this.#init4File(source, opts)
@@ -72,25 +67,27 @@ export class ShareSprite extends BaseSprite {
     return { videoEl, audioSource }
   }
 
-  updateRect (): void {
+  #updateRect (): void {
     if (this.#videoEl == null) return
-    this.rect.w = this.#videoEl.videoWidth
-    this.rect.h = this.#videoEl.videoHeight
-    const factor =  Math.min(1600 / this.rect.w, 1080 / this.rect.h)
-    this.width = (this.name == "userMedia") ? 320 : this.rect.w * factor
-    this.height = (this.name == "userMedia") ? 180 : this.rect.h * factor
-    this.x = (this.name == "userMedia") ? 0 : 320 + (1600 - this.width) / 2
-    this.y = (this.name == "userMedia") ? 0 + 180 * this.index : (1080 - this.height) / 2
+    const factor =  Math.min(this.externalRect.w / this.rect.w, this.externalRect.h / this.rect.h)
+    this.rect.w = this.#videoEl.videoWidth * factor
+    this.rect.h = this.#videoEl.videoHeight * factor
+    this.rect.x = this.externalRect.x + (this.externalRect.w - this.rect.w) / 2
+    this.rect.y = this.externalRect.y + (this.externalRect.h - this.rect.h) / 2
+  }
+
+  updateExternalRect (rect: { x: number; y: number; w: number; h: number }): void {
+    super.updateExternalRect(rect)
+    this.#updateRect()
   }
 
   render (ctx: CanvasRenderingContext2D): void {
     if (this.#videoEl == null) return
     super.render(ctx)
-    // const { w, h } = this.rect
-    // ctx.drawImage(this.#videoEl, -w / 2, -h / 2, w, h)
-    // 如果是共享流，则需要实时更新rect
-    this.updateRect()
-    ctx.drawImage(this.#videoEl, this.x, this.y, this.width, this.height)
+    // 当流中的视频的大小发生变化时,需要更新
+    this.#updateRect()
+    ctx.drawImage(this.#videoEl, this.rect.x, this.rect.y, this.rect.w, this.rect.h)
+    // TODO:需要绘制“name正在共享”文字
   }
 
   get volume (): number {
