@@ -17,8 +17,6 @@ type TKeyFrameOpts = Partial<
 export abstract class BaseSprite {
   rect = new Rect()
 
-  index = 0
-
   visible = true
 
   zIndex = 0

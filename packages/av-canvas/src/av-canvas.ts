@@ -31,7 +31,7 @@ export class AVCanvas {
 
   #clears: Array<() => void> = []
 
-  constructor (container: HTMLElement, opts: {
+  constructor (opts: {
     resolution: IResolution
     bgColor: string
   }) {
@@ -39,7 +39,6 @@ export class AVCanvas {
     const ctx = this.#cvsEl.getContext('2d', { alpha: false })
     if (ctx == null) throw Error('canvas context is null')
     this.#cvsCtx = ctx
-    container.appendChild(this.#cvsEl)
 
     // Rect.CTRL_SIZE = 14 / (this.#cvsEl.clientWidth / this.#cvsEl.width)
     this.spriteManager = new SpriteManager()
