@@ -300,6 +300,24 @@ function encodeAudioTrack (
         Log.info('AudioEncoder, audio track ready, trackId:', trackId)
       }
 
+      // FIXME: 在Windows上无description属性，暂时先手动写一个数据
+      // 数据值来自浏览器端：第一个自己11，第二个字节88
+      if (trackId === 0 &&
+        (meta.decoderConfig?.description === undefined ||
+          meta.decoderConfig?.description === null)) {
+        const description = new ArrayBuffer(2);
+        const viewDescription = new DataView(description);
+        viewDescription.setUint8(0, 11);
+        viewDescription.setUint8(1, 88);
+
+        trackId = mp4File.addTrack({
+          ...audioTrackOpts,
+          description: createESDSBox(description)
+        })
+        stateSync.audio = true
+        Log.info('AudioEncoder, audio track ready, trackId:', trackId)
+      }
+
       if (stateSync.video) {
         if (cache.length > 0) {
           cache.forEach(c => {
