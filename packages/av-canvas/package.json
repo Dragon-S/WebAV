@@ -1,6 +1,6 @@
 {
   "name": "avrecorder-canvas",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "private": false,
   "repository": "https://github.com/Dragon-S/WebAV",
   "type": "module",
@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/wicg-file-system-access": "^2020.9.6",
     "@vitest/coverage-istanbul": "^0.29.8",
-    "avrecorder-recorder": "^0.1.28",
+    "avrecorder-recorder": "^0.1.29",
     "jsdom": "^21.1.1",
     "typescript": "^4.9.3",
     "vite": "^4.2.0",
@@ -30,6 +30,6 @@
     "worker-timers": "^7.0.71"
   },
   "dependencies": {
-    "avrecorder-cliper": "^0.1.28"
+    "avrecorder-cliper": "^0.1.29"
   }
 }
