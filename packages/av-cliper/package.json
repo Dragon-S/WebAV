@@ -21,7 +21,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/dom-webcodecs": "^0.1.7",
+    "@types/dom-webcodecs": "0.1.7",
     "@vitest/coverage-istanbul": "^0.29.8",
     "concurrently": "^8.2.0",
     "jsdom": "^21.1.1",
