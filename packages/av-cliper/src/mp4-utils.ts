@@ -291,29 +291,10 @@ function encodeAudioTrack (
   const encoder = new AudioEncoder({
     error: Log.error,
     output: (chunk, meta) => {
-      console.log("sll-------meta.decoderConfig = ", meta.decoderConfig)
-      console.log("sll-------meta.decoderConfig?.description = ", meta.decoderConfig?.description)
       if (trackId === 0 && meta.decoderConfig?.description != null) {
         trackId = mp4File.addTrack({
           ...audioTrackOpts,
           description: createESDSBox(meta.decoderConfig?.description)
-        })
-        stateSync.audio = true
-        Log.info('AudioEncoder, audio track ready, trackId:', trackId)
-      }
-
-      // FIXME: 在Windows上无description属性，暂时先手动写一个数据
-      // 数据值来自浏览器端：第一个自己0x11，第二个字节0x88
-      if (trackId === 0 &&
-        (meta.decoderConfig?.description === undefined ||
-          meta.decoderConfig?.description === null)) {
-        const description = new Uint8Array([0x11, 0x88]);
-
-        console.log("sll--------description = ", description)
-
-        trackId = mp4File.addTrack({
-          ...audioTrackOpts,
-          description: createESDSBox(description)
         })
         stateSync.audio = true
         Log.info('AudioEncoder, audio track ready, trackId:', trackId)
