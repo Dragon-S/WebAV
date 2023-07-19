@@ -50,8 +50,12 @@ function init (opts: IWorkerOpts, onEnded: TClearFn): TClearFn {
     const encode = encodeVideoFrame(opts.video.expectFPS, recoder.encodeVideo)
     stopEncodeVideo = autoReadStream(opts.streams.video, {
       onChunk: async vf => {
-        if (stoped) return
+        if (stoped) {
+          vf.close()
+          return
+        }
         encode(vf)
+        vf.close()
       },
       onDone: () => {}
     })
@@ -60,8 +64,12 @@ function init (opts: IWorkerOpts, onEnded: TClearFn): TClearFn {
   if (opts.audio != null && opts.streams.audio != null) {
     stopEncodeAudio = autoReadStream(opts.streams.audio, {
       onChunk: async ad => {
-        if (stoped) return
+        if (stoped) {
+          ad.close()
+          return
+        }
         recoder.encodeAudio(ad)
+        ad.close()
       },
       onDone: () => {}
     })

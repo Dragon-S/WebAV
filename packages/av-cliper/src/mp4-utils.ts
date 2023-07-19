@@ -19,6 +19,8 @@ import {
   concatPCMFragments
 } from './av-utils'
 
+import { EventTool } from './event-tool'
+
 type TCleanFn = () => void
 
 interface IWorkerOpts {
@@ -161,22 +163,22 @@ export function recodemux (opts: IWorkerOpts): {
   encodeVideo: (frame: VideoFrame, options?: VideoEncoderEncodeOptions) => void
   encodeAudio: (data: AudioData) => void
   close: TCleanFn
+  flush: () => Promise<void>
   mp4file: MP4File
   getEecodeQueueSize: () => number
 } {
   const mp4file = mp4box.createFile()
 
   // 音视频轨道必须同时创建, 保存在 moov 中
-  const stateSync = {
-    audio: false,
-    video: false
-  }
-  const vEncoder = encodeVideoTrack(opts, mp4file, stateSync)
+  const avSyncEvtTool = new EventTool<
+    Record<'VideoReady' | 'AudioReady', () => void>
+  >()
+  const vEncoder = encodeVideoTrack(opts, mp4file, avSyncEvtTool)
   let aEncoder: AudioEncoder | null = null
   if (opts.audio == null) {
-    stateSync.audio = true
+    avSyncEvtTool.emit('AudioReady')
   } else {
-    aEncoder = encodeAudioTrack(opts.audio, mp4file, stateSync)
+    aEncoder = encodeAudioTrack(opts.audio, mp4file, avSyncEvtTool)
   }
 
   let maxSize = 0
@@ -188,14 +190,25 @@ export function recodemux (opts: IWorkerOpts): {
       if (vEncoder.encodeQueueSize > maxSize) maxSize = vEncoder.encodeQueueSize
     },
     encodeAudio: ad => {
-      if (aEncoder == null) return
+      if (aEncoder == null) {
+        ad.close()
+        return
+      }
+
       aEncoder.encode(ad)
       ad.close()
     },
     getEecodeQueueSize: () => vEncoder.encodeQueueSize,
+    flush: async () => {
+      await Promise.all([
+        vEncoder.state === 'configured' ? vEncoder.flush() : null,
+        aEncoder?.state === 'configured' ? aEncoder.flush() : null
+      ])
+      return
+    },
     close: () => {
-      vEncoder.close()
-      aEncoder?.close()
+      if (vEncoder.state === 'configured') vEncoder.close()
+      if (aEncoder?.state === 'configured') aEncoder.close()
     },
     mp4file
   }
@@ -204,7 +217,7 @@ export function recodemux (opts: IWorkerOpts): {
 function encodeVideoTrack (
   opts: IWorkerOpts,
   mp4File: MP4File,
-  stateSync: { audio: boolean; video: boolean }
+  avSyncEvtTool: EventTool<Record<'VideoReady' | 'AudioReady', () => void>>
 ): VideoEncoder {
   const videoTrackOpts = {
     // 微秒
@@ -217,22 +230,24 @@ function encodeVideoTrack (
 
   let trackId: number
   let cache: EncodedVideoChunk[] = []
+  let audioReady = false
+  avSyncEvtTool.once('AudioReady', () => {
+    audioReady = true
+    cache.forEach(c => {
+      const s = chunk2MP4SampleOpts(c)
+      mp4File.addSample(trackId, s.data, s)
+    })
+    cache = []
+  })
   const encoder = createVideoEncoder(opts, (chunk, meta) => {
     if (trackId == null && meta != null) {
       videoTrackOpts.avcDecoderConfigRecord = meta.decoderConfig?.description
       trackId = mp4File.addTrack(videoTrackOpts)
-      stateSync.video = true
+      avSyncEvtTool.emit('VideoReady')
       Log.info('VideoEncoder, video track ready, trackId:', trackId)
     }
 
-    if (stateSync.audio) {
-      if (cache.length > 0) {
-        cache.forEach(c => {
-          const s = chunk2MP4SampleOpts(c)
-          mp4File.addSample(trackId, s.data, s)
-        })
-        cache = []
-      }
+    if (audioReady) {
       const s = chunk2MP4SampleOpts(chunk)
       mp4File.addSample(trackId, s.data, s)
     } else {
@@ -274,7 +289,7 @@ function createVideoEncoder (
 function encodeAudioTrack (
   audioOpts: NonNullable<IWorkerOpts['audio']>,
   mp4File: MP4File,
-  stateSync: { video: boolean; audio: boolean }
+  avSyncEvtTool: EventTool<Record<'VideoReady' | 'AudioReady', () => void>>
 ): AudioEncoder {
   const audioTrackOpts = {
     timescale: 1e6,
@@ -288,6 +303,15 @@ function encodeAudioTrack (
 
   let trackId = 0
   let cache: EncodedAudioChunk[] = []
+  let videoReady = false
+  avSyncEvtTool.once('VideoReady', () => {
+    videoReady = true
+    cache.forEach(c => {
+      const s = chunk2MP4SampleOpts(c)
+      mp4File.addSample(trackId, s.data, s)
+    })
+    cache = []
+  })
   const encoder = new AudioEncoder({
     error: Log.error,
     output: (chunk, meta) => {
@@ -296,18 +320,11 @@ function encodeAudioTrack (
           ...audioTrackOpts,
           description: createESDSBox(meta.decoderConfig?.description)
         })
-        stateSync.audio = true
+        avSyncEvtTool.emit('AudioReady')
         Log.info('AudioEncoder, audio track ready, trackId:', trackId)
       }
 
-      if (stateSync.video) {
-        if (cache.length > 0) {
-          cache.forEach(c => {
-            const s = chunk2MP4SampleOpts(c)
-            mp4File.addSample(trackId, s.data, s)
-          })
-          cache = []
-        }
+      if (videoReady) {
         const s = chunk2MP4SampleOpts(chunk)
         mp4File.addSample(trackId, s.data, s)
       } else {
@@ -462,43 +479,65 @@ export function file2stream (
 
   let sendedBoxIdx = 0
   const boxes = file.boxes
+  const tracks: Array<{ track: TrakBoxParser; id: number }> = []
+
   const deltaBuf = (): Uint8Array | null => {
+    // boxes.length >= 4 表示完成了 ftyp moov，且有了第一个 moof mdat
+    // 避免moov未完成时写入文件，导致文件无法被识别
+    if (boxes.length < 4 || sendedBoxIdx >= boxes.length) return null
+
+    if (tracks.length === 0) {
+      for (let i = 1; true; i += 1) {
+        const track = file.getTrackById(i)
+        if (track == null) break
+        tracks.push({ track, id: i })
+      }
+    }
+
     const ds = new mp4box.DataStream()
     ds.endianness = mp4box.DataStream.BIG_ENDIAN
 
-    if (boxes.length < 4 || sendedBoxIdx >= boxes.length) return null
-    // boxes.length >= 4 表示完成了 ftyp moov，且有了第一个 moof mdat
-    // 避免moov未完成时写入文件，导致文件无法被识别
     for (let i = sendedBoxIdx; i < boxes.length; i++) {
       boxes[i].write(ds)
-      // @ts-expect-error 释放已使用的 mdat box 空间
-      if (boxes[i].data != null) boxes[i].data = null
+      delete boxes[i]
     }
+
+    // 释放引用，避免内存泄露
+    tracks.forEach(({ track, id }) => {
+      file.releaseUsedSamples(id, track.samples.length)
+      track.samples = []
+    })
+    file.mdats = []
+    file.moofs = []
+
     sendedBoxIdx = boxes.length
     return new Uint8Array(ds.buffer)
   }
 
   let stoped = false
+  let canceled = false
   let exit: TCleanFn | null = null
   const stream = new ReadableStream({
     start (ctrl) {
       timerId = self.setInterval(() => {
         const d = deltaBuf()
-        if (d != null) ctrl.enqueue(d)
+        if (d != null && !canceled) ctrl.enqueue(d)
       }, timeSlice)
 
       exit = () => {
         clearInterval(timerId)
         file.flush()
         const d = deltaBuf()
-        if (d != null) ctrl.enqueue(d)
-        ctrl.close()
+        if (d != null && !canceled) ctrl.enqueue(d)
+
+        if (!canceled) ctrl.close()
       }
 
       // 安全起见，检测如果start触发时已经 stoped
       if (stoped) exit()
     },
     cancel () {
+      canceled = true
       clearInterval(timerId)
       onCancel?.()
     }
@@ -507,6 +546,7 @@ export function file2stream (
   return {
     stream,
     stop: () => {
+      if (stoped) return
       stoped = true
       exit?.()
     }

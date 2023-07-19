@@ -114,6 +114,7 @@ async function mediaStream2Video (
 
   video.srcObject = stream
 
+  // FIXME: 此处的timer依赖窗口，如果窗口处于非激活状态时，调用此处可能会存在问题
   return await new Promise((resolve, reject) => {
     let failed = false
     video.addEventListener('loadeddata', () => {

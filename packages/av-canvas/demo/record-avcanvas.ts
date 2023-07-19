@@ -1,4 +1,4 @@
-import { AVCanvas, AudioSprite, VideoSprite } from '../src/index'
+import { AVCanvas, VideoSprite } from '../src/index'
 import { AVRecorder } from 'avrecorder-recorder'
 
 const avCvs = new AVCanvas({
@@ -9,16 +9,24 @@ const avCvs = new AVCanvas({
   }
 })
 
-document.querySelector('#micphone')?.addEventListener('click', () => {
+const recorder = new AVRecorder(avCvs.captureStream(), {
+  width: 1920,
+  height: 1080,
+  bitrate: 1_500_000,
+  expectFPS: 25,
+  audioCodec: 'aac'
+})
+
+document.querySelector('#camera')?.addEventListener('click', () => {
   ;(async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: false,
+      video: true,
       audio: true
     })
-    const audioSprite = new AudioSprite('micphone', mediaStream, {
+    const vidoeSprite = new VideoSprite('camera', mediaStream, {
       audioCtx: avCvs.spriteManager.audioCtx
     })
-    await avCvs.spriteManager.addSprite(audioSprite)
+    await avCvs.spriteManager.addSprite(vidoeSprite)
 
   })().catch(console.error)
 })
@@ -38,17 +46,9 @@ document.querySelector('#display')?.addEventListener('click', () => {
   })().catch(console.error)
 })
 
-let recorder: AVRecorder | null = null
 document.querySelector('#startRecod')?.addEventListener('click', () => {
   ;(async () => {
     const writer = await createFileWriter('mp4')
-    recorder = new AVRecorder(avCvs.captureStream(), {
-      width: 1920,
-      height: 1080,
-      bitrate: 3_000_000,
-      expectFPS: 25,
-      audioCodec: 'aac'
-    })
     await recorder.start()
     recorder.outputStream?.pipeTo(writer).catch(console.error)
   })().catch(console.error)

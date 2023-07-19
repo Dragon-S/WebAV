@@ -4,7 +4,10 @@ let recorder: AVRecorder | null = null
 document.querySelector('#startRecod')?.addEventListener('click', () => {
   ;(async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: {
+        width: 1920,
+        height: 1080
+      },
       audio: true
     })
     const recodeMS = mediaStream.clone()
@@ -13,8 +16,8 @@ document.querySelector('#startRecod')?.addEventListener('click', () => {
     vEl.play().catch(console.error)
 
     recorder = new AVRecorder(recodeMS, {
-      width: 1280,
-      height: 720
+      width: 1920,
+      height: 1080
     })
     await recorder.start()
 
