@@ -5,7 +5,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        'record-avcanvas': resolve(__dirname, 'demo/record-avcanvas.html')
+        'record-avcanvas': resolve(__dirname, 'demo/record-avcanvas.html'),
+        'local-recorder': resolve(__dirname, 'demo/local-recorder.html')
       }
     },
     outDir: 'demo-dist'

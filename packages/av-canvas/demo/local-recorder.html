@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本地录制</title>
+
+  <style>
+    #app {
+      width: 1920px;
+      height: 1080px;
+      margin: 50px 50px;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  输入视频设置：
+  <select id="inputVideo">
+    <option value="camera+display" selected>摄像头+屏幕</option>
+    <option value="camera">摄像头</option>
+    <option value="display">屏幕</option>
+  </select>
+  <hr />
+  输入音频设置：
+  <select id="inputAudio">
+    <option value="mic+system" selected>麦克风+系统声音</option>
+    <option value="mic">麦克风</option>
+    <option value="system">系统声音</option>
+  </select>
+  <hr />
+  布局设置：
+  <select id="layout">
+    <option value="sidebyside" selected>侧边栏</option>
+    <option value="floating">悬浮</option>
+  </select>
+  <hr />
+  输出分辨率设置：
+  <select id="outputResolution">
+    <option value="1080P" selected>1080P</option>
+    <option value="720P">720P</option>
+  </select>
+  <hr />
+  输出帧率设置：
+  <select id="outputFramerate">
+    <option value="30fps" selected>30fps</option>
+    <option value="25fps">25fps</option>
+  </select>
+  <hr />
+  <button id="startRecod">开始录制</button>&nbsp;
+  <button id="stopRecod">停止录制</button>
+  <script type="module" src="local-recorder.ts"></script>
+</body>
+
+</html>
