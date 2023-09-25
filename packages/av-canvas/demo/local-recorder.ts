@@ -1,7 +1,7 @@
 import { AVCanvas, VideoSprite, AudioSprite } from '../src/index'
 import { AVRecorder } from 'avrecorder-recorder'
 
-const avCvs = new AVCanvas({
+const avCvs = new AVCanvas(document.querySelector('#app') as HTMLElement, {
   bgColor: '#333',
   resolution: {
     width: 1920,
@@ -40,16 +40,6 @@ let layout = (document.querySelector('#layout') as HTMLSelectElement).value
 let outputResolution = (document.querySelector('#outputResolution') as HTMLSelectElement).value
 let outputFramerate = (document.querySelector('#outputFramerate') as HTMLSelectElement).value
 
-const video = document.createElement("video")
-video.autoplay = true
-video.style.cssText = `
-width: 100%;
-height: 100%;
-`
-video.width = 1920
-video.height = 1080
-document.querySelector('#app')?.appendChild(video)
-
 let cameraStream: MediaStream | null = null
 let cameraSprite: VideoSprite | null = null
 async function updateCameraStream () {
@@ -59,7 +49,6 @@ async function updateCameraStream () {
       video: true,
       audio: false
     })
-    video.srcObject = cameraStream
 
     cameraSprite = new VideoSprite('camera', cameraStream, {
       audioCtx: avCvs.spriteManager.audioCtx
@@ -71,7 +60,6 @@ async function updateCameraStream () {
     cameraSprite?.destroy()
     cameraSprite = null
 
-    video.srcObject = null
     cameraStream?.getVideoTracks()[0].stop()
     cameraStream = null
   }
