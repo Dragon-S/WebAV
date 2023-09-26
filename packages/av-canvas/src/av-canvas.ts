@@ -1,17 +1,18 @@
 // import { Rect, TCtrlKey } from 'avrecorder-cliper'
 // import { renderCtrls } from './sprites/render-ctrl'
-import { SpriteManager } from './sprites/sprite-manager'
+import { Rect } from 'avrecorder-cliper'
+import { SpriteManager, ESpriteManagerEvt } from './sprites/sprite-manager'
 // import { draggabelSprite } from './sprites/sprite-op'
-import { IResolution } from './types'
+import { IResolution, ILayoutType } from './types'
 import { createEl } from './utils'
 import { clearInterval, setInterval } from 'worker-timers'
 
 function createInitCvsEl (resolution: IResolution): HTMLCanvasElement {
   const cvsEl = createEl('canvas') as HTMLCanvasElement
-  // cvsEl.style.cssText = `
-  //   width: 100%;
-  //   height: 100%;
-  // `
+  cvsEl.style.cssText = `
+    width: 100%;
+    height: 100%;
+  `
   cvsEl.width = resolution.width
   cvsEl.height = resolution.height
 
@@ -31,10 +32,40 @@ export class AVCanvas {
 
   #clears: Array<() => void> = []
 
+  #layoutType: ILayoutType = ILayoutType.SIDEBYSIDE
+
+  #sidebysideSize = {
+    w: 320,
+    h: 180
+  }
+
+  #sidebysideMargin = 2
+
+  #layoutParams = {
+    "sidebyside": {
+      "camera": new Rect(0, 0, 0, 0),
+      "display": new Rect(0, 0, 0, 0)
+    },
+    "floating": {
+      "camera": new Rect(0, 0, 0, 0),
+      "display": new Rect(0, 0, 0, 0)
+    },
+    "fullscreen": {
+      "camera": new Rect(0, 0, 0, 0),
+      "display": new Rect(0, 0, 0, 0)
+    }
+  }
+
+  #resolution: IResolution = {
+    width: 1920,
+    height: 1080
+  }
+
   constructor (container: HTMLElement | null, opts: {
     resolution: IResolution
     bgColor: string
   }) {
+    this.#resolution = opts.resolution
     this.#cvsEl = createInitCvsEl(opts.resolution)
     const ctx = this.#cvsEl.getContext('2d', { alpha: false })
     if (ctx == null) throw Error('canvas context is null')
@@ -45,6 +76,16 @@ export class AVCanvas {
 
     // Rect.CTRL_SIZE = 14 / (this.#cvsEl.clientWidth / this.#cvsEl.width)
     this.spriteManager = new SpriteManager()
+
+    this.updateLayoutType(this.#layoutType)
+
+    this.spriteManager.on(ESpriteManagerEvt.AddSprite, (s) => {
+      if (s.name === "camera") {
+        s.rect = this.#layoutParams[this.#layoutType].camera
+      } else if (s.name === "display") {
+        s.rect = this.#layoutParams[this.#layoutType].display
+      }
+    })
 
     // this.#clears.push(
     //   // 鼠标样式、控制 sprite 依赖 activeSprite，
@@ -71,13 +112,20 @@ export class AVCanvas {
     const loop = (): void => {
       if (this.#destroyed) return
 
-      this.#cvsCtx.fillStyle = opts.bgColor
+      this.#cvsCtx.fillStyle = "#E3E3E7"
       this.#cvsCtx.fillRect(0, 0, opts.resolution.width, opts.resolution.height)
+
+      if (this.#layoutType === ILayoutType.SIDEBYSIDE) {
+        this.#cvsCtx.fillStyle = "#F5F5F8"
+        this.#cvsCtx.fillRect(opts.resolution.width - this.#sidebysideSize.w,
+          0, this.#sidebysideSize.w, opts.resolution.height)
+      }
+
       this.#render()
     }
     this.#intervalId = setInterval(() => {
       loop()
-    }, Math.floor(1000 / 25));
+    }, Math.floor(1000 / 30));
 
     // ;(window as any).cvsEl = this.#cvsEl
   }
@@ -92,7 +140,7 @@ export class AVCanvas {
 
   captureStream (): MediaStream {
     const ms = new MediaStream()
-    this.#cvsEl.captureStream(25).getTracks().concat(
+    this.#cvsEl.captureStream(30).getTracks().concat(
       this.spriteManager.audioMSDest.stream.getTracks()
     ).forEach((t) => {
       ms.addTrack(t)
@@ -106,6 +154,49 @@ export class AVCanvas {
     list.forEach(r => r.render(cvsCtx))
 
     // cvsCtx.resetTransform()
+  }
+
+  updateLayoutType (layouType: ILayoutType): void {
+    this.#layoutType = layouType
+    if (this.#layoutType === ILayoutType.SIDEBYSIDE) {
+      this.#layoutParams.sidebyside.camera = new Rect(
+        this.#resolution.width - this.#sidebysideSize.w + this.#sidebysideMargin,
+        (this.#resolution.height - this.#sidebysideSize.h) / 2,
+        this.#sidebysideSize.w - 2 * this.#sidebysideMargin,
+        this.#sidebysideSize.h)
+      this.#layoutParams.sidebyside.display = new Rect(0, 0,
+        this.#resolution.width - this.#sidebysideSize.w,
+        this.#resolution.height)
+    } else if (this.#layoutType === ILayoutType.FLOOTING) {
+      this.#layoutParams.floating.camera = new Rect(0, 0,
+        this.#sidebysideSize.w, this.#sidebysideSize.h)
+      this.#layoutParams.floating.display = new Rect(0, 0,
+        this.#resolution.width, this.#resolution.height)
+    } else if (this.#layoutType === ILayoutType.FULLSCREEN) {
+      this.#layoutParams.fullscreen.camera = new Rect(0, 0,
+        this.#resolution.width, this.#resolution.height)
+      this.#layoutParams.fullscreen.display = new Rect(0, 0,
+        this.#resolution.width, this.#resolution.height)
+    }
+
+    const list = this.spriteManager.getSprites()
+    list?.forEach(r => {
+      if (r.name === "camera") {
+        r.rect = this.#layoutParams[this.#layoutType].camera
+      } else if (r.name === "display") {
+        r.rect = this.#layoutParams[this.#layoutType].display
+      }
+    })
+  }
+
+  updateResolution(width: number, height: number): void {
+    this.#resolution.width = width
+    this.#resolution.height = height
+
+    this.#cvsEl.width = width
+    this.#cvsEl.height = height
+
+    this.updateLayoutType(this.#layoutType)
   }
 }
 

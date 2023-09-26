@@ -22,9 +22,9 @@ export class AVRecorder {
   constructor (inputMediaStream: MediaStream, conf: IRecorderConf = {}) {
     this.#ms = inputMediaStream
     this.#conf = {
-      width: 1280,
-      height: 720,
-      bitrate: 1_500_000,
+      width: 1920,
+      height: 1080,
+      bitrate: 2_500_000,
       expectFPS: 30,
       audioCodec: 'aac',
       ...conf
@@ -113,5 +113,9 @@ export class AVRecorder {
         }
       })
     })
+  }
+
+  updateConf (conf: Partial<IRecorderConf>) {
+    this.#conf = { ...this.#conf, ...conf}
   }
 }

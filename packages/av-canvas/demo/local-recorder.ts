@@ -1,5 +1,6 @@
 import { AVCanvas, VideoSprite, AudioSprite } from '../src/index'
 import { AVRecorder } from 'avrecorder-recorder'
+import { ILayoutType } from '../src/types'
 
 const avCvs = new AVCanvas(document.querySelector('#app') as HTMLElement, {
   bgColor: '#333',
@@ -17,13 +18,21 @@ let inputMedia = {
 }
 
 const inputVideo = (document.querySelector('#inputVideo') as HTMLSelectElement).value
+const layoutTest =  document.querySelector('#layout') as HTMLSelectElement
+layoutTest.hidden = false
 if (inputVideo === 'camera+display') {
   inputMedia.camera = true
   inputMedia.display = true
+  layoutTest.hidden = false
+  avCvs.updateLayoutType(ILayoutType.SIDEBYSIDE)
 } else if (inputVideo === 'camera') {
   inputMedia.camera = true
+  layoutTest.hidden = true
+  avCvs.updateLayoutType(ILayoutType.FULLSCREEN)
 } else if (inputVideo === 'display') {
   inputMedia.display = true
+  layoutTest.hidden = true
+  avCvs.updateLayoutType(ILayoutType.FULLSCREEN)
 }
 
 const inputAudio = (document.querySelector('#inputAudio') as HTMLSelectElement).value
@@ -36,23 +45,24 @@ if (inputAudio === 'mic+system') {
   inputMedia.system = true
 }
 
-let layout = (document.querySelector('#layout') as HTMLSelectElement).value
-let outputResolution = (document.querySelector('#outputResolution') as HTMLSelectElement).value
-let outputFramerate = (document.querySelector('#outputFramerate') as HTMLSelectElement).value
-
 let cameraStream: MediaStream | null = null
 let cameraSprite: VideoSprite | null = null
 async function updateCameraStream () {
   if (inputMedia.camera) {
     console.log("创建相机流")
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: {
+        width: 1280,
+        height: 720,
+        frameRate: 30
+      },
       audio: false
     })
 
     cameraSprite = new VideoSprite('camera', cameraStream, {
       audioCtx: avCvs.spriteManager.audioCtx
     })
+    cameraSprite.zIndex = 10 // 使摄像头视频始终在最上层
     await avCvs.spriteManager.addSprite(cameraSprite)
   } else {
     console.log("移除相机流")
@@ -97,9 +107,11 @@ async function updateDisplayStream() {
     console.log("创建屏幕流")
     displayStream = await navigator.mediaDevices.getDisplayMedia({
       video: {
-        frameRate: 25,
+        width: 1920,
+        height: 1080,
+        frameRate: 30,
       },
-      audio: true
+      audio: false
     })
 
     displaySprite = new VideoSprite('display', displayStream, {
@@ -145,15 +157,15 @@ async function updateSystemAudioStream() {
 }
 
 updateCameraStream()
-// updateDisplayStream()
+updateDisplayStream()
 updateMicStream()
 // updateSystemAudioStream()
 
 const recorder = new AVRecorder(avCvs.captureStream(), {
   width: 1920,
   height: 1080,
-  bitrate: 1_500_000,
-  expectFPS: 25,
+  bitrate: 2_500_000,
+  expectFPS: 30,
   audioCodec: 'aac'
 })
 
@@ -170,6 +182,8 @@ document.querySelector('#inputVideo')?.addEventListener('change', (event: any) =
         inputMedia.display = true
         updateDisplayStream()
       }
+      layoutTest.hidden = false
+      avCvs.updateLayoutType(ILayoutType.SIDEBYSIDE)
       break;
 
     case "camera":
@@ -182,6 +196,8 @@ document.querySelector('#inputVideo')?.addEventListener('change', (event: any) =
         inputMedia.display = false
         updateDisplayStream()
       }
+      layoutTest.hidden = true
+      avCvs.updateLayoutType(ILayoutType.FULLSCREEN)
       break;
 
     case "display":
@@ -194,6 +210,8 @@ document.querySelector('#inputVideo')?.addEventListener('change', (event: any) =
         inputMedia.camera = false
         updateCameraStream()
       }
+      layoutTest.hidden = true
+      avCvs.updateLayoutType(ILayoutType.FULLSCREEN)
       break;
 
     default:
@@ -245,59 +263,44 @@ document.querySelector('#inputAudio')?.addEventListener('change', (event: any) =
   }
 })
 
+let layout = (document.querySelector('#layout') as HTMLSelectElement).value
+avCvs.updateLayoutType(layout as ILayoutType)
 document.querySelector('#layout')?.addEventListener('change', (event: any) => {
+  console.log("sll---layout = ", event.target.value)
   layout = event.target.value
-  const type = event.target?.value;
-  switch (type) {
-    case "sidebyside":
-      console.log("sll---layout = ", type)
-      break;
-
-    case "floating":
-      console.log("sll---layout = ", type)
-      break;
-
-    default:
-      break;
-  }
+  avCvs.updateLayoutType(layout as ILayoutType)
 })
 
+let outputResolution = (document.querySelector('#outputResolution') as HTMLSelectElement).value
 document.querySelector('#outputResolution')?.addEventListener('change', (event: any) => {
   outputResolution = event.target.value
-  const type = event.target?.value;
-  switch (type) {
-    case "1080P":
-      console.log("sll---outputResolution = ", type)
-      break;
-
-    case "720P":
-      console.log("sll---outputResolution = ", type)
-      break;
-
-    default:
-      break;
-  }
 })
 
+let outputFramerate = (document.querySelector('#outputFramerate') as HTMLSelectElement).value
 document.querySelector('#outputFramerate')?.addEventListener('change', (event: any) => {
   outputFramerate = event.target.value
-  const type = event.target?.value;
-  switch (type) {
-    case "30fps":
-      console.log("sll---outputFramerate = ", type)
-      break;
-
-    case "25fps":
-      console.log("sll---outputFramerate = ", type)
-      break;
-
-    default:
-      break;
-  }
 })
 
 document.querySelector('#startRecod')?.addEventListener('click', () => {
   ;(async () => {
+    const width = outputResolution === '1080P' ? 1920 : 1280
+    const height = outputResolution === '1080P' ? 1080 : 720
+    const frameRate = outputFramerate === '25fps' ? 25 : 30
+    let bitrate = 1_500_000
+    if ((outputResolution === '1080P' && outputFramerate === '25fps')
+      || (outputResolution === '720P' && outputFramerate === '30fps')) {
+      bitrate = 2_000_000
+    } else if (outputResolution === '1080P' && outputFramerate === '30fps') {
+      bitrate = 2_500_000
+    }
+
+    recorder.updateConf({
+      width: width,
+      height: height,
+      bitrate: bitrate,
+      expectFPS: frameRate
+    })
+
     const writer = await createFileWriter('mp4')
     await recorder.start()
     recorder.outputStream?.pipeTo(writer).catch(console.error)

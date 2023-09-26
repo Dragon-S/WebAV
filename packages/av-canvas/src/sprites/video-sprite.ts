@@ -8,6 +8,13 @@ interface IVideoSpriteOpts {
 export class VideoSprite extends BaseSprite {
   #videoEl: HTMLVideoElement | null = null
 
+  #drawRect: {
+    x: number
+    y: number
+    w: number
+    h: number
+  } = { x: 0, y: 0, w: 0, h: 0 }
+
   constructor (name: string, source: MediaStream | File, opts: IVideoSpriteOpts = {}) {
     super(name)
     this.initReady = (source instanceof MediaStream
@@ -15,8 +22,8 @@ export class VideoSprite extends BaseSprite {
       : this.#init4File(source, opts)
     ).then(({ videoEl, audioSource }) => {
       videoEl.loop = true
-      this.rect.w = videoEl.videoWidth
-      this.rect.h = videoEl.videoHeight
+      // this.rect.w = videoEl.videoWidth
+      // this.rect.h = videoEl.videoHeight
       this.#videoEl = videoEl
 
       if (audioSource != null && opts.audioCtx != null) {
@@ -70,13 +77,13 @@ export class VideoSprite extends BaseSprite {
   updateRect (): void {
     if (this.#videoEl == null) return
 
-    this.rect.w = this.#videoEl.videoWidth
-    this.rect.h = this.#videoEl.videoHeight
-    const factor =  Math.min(1920 / this.rect.w, 1080 / this.rect.h)
-    this.rect.w = this.rect.w * factor
-    this.rect.h = this.rect.h * factor
-    this.rect.x = (1920 - this.rect.w) / 2
-    this.rect.y = (1080 - this.rect.h) / 2
+    // this.rect.w = this.#videoEl.videoWidth
+    // this.rect.h = this.#videoEl.videoHeight
+    const factor =  Math.min(this.rect.w / this.#videoEl.videoWidth, this.rect.h / this.#videoEl.videoHeight)
+    this.#drawRect.w = this.#videoEl.videoWidth * factor
+    this.#drawRect.h = this.#videoEl.videoHeight * factor
+    this.#drawRect.x = this.rect.x + (this.rect.w - this.#drawRect.w) / 2
+    this.#drawRect.y = this.rect.y + (this.rect.h - this.#drawRect.h) / 2
   }
 
   render (ctx: CanvasRenderingContext2D): void {
@@ -85,7 +92,8 @@ export class VideoSprite extends BaseSprite {
     super.render(ctx)
 
     this.updateRect()
-    ctx.drawImage(this.#videoEl, this.rect.x, this.rect.y, this.rect.w, this.rect.h)
+
+    ctx.drawImage(this.#videoEl, this.#drawRect.x, this.#drawRect.y, this.#drawRect.w, this.#drawRect.h)
   }
 
   get volume (): number {
