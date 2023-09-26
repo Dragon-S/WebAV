@@ -20,6 +20,7 @@ let inputMedia = {
 const inputVideo = (document.querySelector('#inputVideo') as HTMLSelectElement).value
 const layoutTest =  document.querySelector('#layout') as HTMLSelectElement
 layoutTest.hidden = false
+console.log("sll----inputVideo", inputVideo)
 if (inputVideo === 'camera+display') {
   inputMedia.camera = true
   inputMedia.display = true
@@ -95,7 +96,7 @@ async function updateMicStream () {
     micSprite?.destroy()
     micSprite = null
 
-    micStream?.getVideoTracks()[0].stop()
+    micStream?.getAudioTracks()[0].stop()
     micStream = null
   }
 }
@@ -120,9 +121,11 @@ async function updateDisplayStream() {
     await avCvs.spriteManager.addSprite(displaySprite)
   } else {
     console.log("移除屏幕流")
-    avCvs.spriteManager.removeSprite(displaySprite)
-    displaySprite?.destroy()
-    displaySprite = null
+    if (displaySprite != null) {
+      avCvs.spriteManager.removeSprite(displaySprite)
+      displaySprite?.destroy()
+      displaySprite = null
+    }
 
     displayStream?.getVideoTracks()[0].stop()
     displayStream = null
@@ -130,7 +133,8 @@ async function updateDisplayStream() {
 }
 
 let systemAudioStream: MediaStream | null = null
-let isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+let systemAudioSprite: AudioSprite | null = null
+let isMac = false //navigator.platform.toUpperCase().indexOf('MAC') >= 0
 async function updateSystemAudioStream() {
   if (inputMedia.system) {
     console.log("创建系统声音流")
@@ -145,12 +149,24 @@ async function updateSystemAudioStream() {
       })
     } else {
       systemAudioStream = await navigator.mediaDevices.getDisplayMedia({
-        video: false,
+        video: true,
         audio: true
       })
+      systemAudioStream.removeTrack(systemAudioStream.getVideoTracks()[0])
     }
+
+    systemAudioSprite = new AudioSprite('mic', systemAudioStream, {
+      audioCtx: avCvs.spriteManager.audioCtx
+    })
+    await avCvs.spriteManager.addSprite(systemAudioSprite)
   } else {
     console.log("移除系统声音流")
+    if (systemAudioSprite != null) {
+      avCvs.spriteManager.removeSprite(systemAudioSprite)
+      systemAudioSprite?.destroy()
+      systemAudioSprite = null
+    }
+
     systemAudioStream?.getAudioTracks()[0].stop()
     systemAudioStream = null
   }
@@ -159,7 +175,7 @@ async function updateSystemAudioStream() {
 updateCameraStream()
 updateDisplayStream()
 updateMicStream()
-// updateSystemAudioStream()
+updateSystemAudioStream()
 
 const recorder = new AVRecorder(avCvs.captureStream(), {
   width: 1920,
@@ -264,7 +280,6 @@ document.querySelector('#inputAudio')?.addEventListener('change', (event: any) =
 })
 
 let layout = (document.querySelector('#layout') as HTMLSelectElement).value
-avCvs.updateLayoutType(layout as ILayoutType)
 document.querySelector('#layout')?.addEventListener('change', (event: any) => {
   console.log("sll---layout = ", event.target.value)
   layout = event.target.value
