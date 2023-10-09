@@ -98,9 +98,11 @@ export class AVRecorder {
 
   pause(): void {
     this.#worker?.postMessage({ type: EWorkerMsg.Paused, data: true })
+    this.#state = 'paused'
   }
   resume(): void {
     this.#worker?.postMessage({ type: EWorkerMsg.Paused, data: false })
+    this.#state = 'recording'
   }
 
   async stop(): Promise<void> {
