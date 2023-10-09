@@ -1,8 +1,10 @@
 import { AVRecorder } from '../src/av-recorder'
 
 let recorder: AVRecorder | null = null
-document.querySelector('#startRecod')?.addEventListener('click', () => {
-  ;(async () => {
+
+const startEl = document.querySelector('#startRecod') as HTMLButtonElement
+startEl?.addEventListener('click', () => {
+  ; (async () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
         width: 1920,
@@ -12,6 +14,7 @@ document.querySelector('#startRecod')?.addEventListener('click', () => {
     })
     const recodeMS = mediaStream.clone()
     const vEl = document.querySelector('video') as HTMLVideoElement
+    vEl.muted = true
     vEl.srcObject = mediaStream
     vEl.play().catch(console.error)
 
@@ -23,16 +26,49 @@ document.querySelector('#startRecod')?.addEventListener('click', () => {
 
     const writer = await createFileWriter('mp4')
     recorder.outputStream?.pipeTo(writer).catch(console.error)
-  })().catch(console.error)
-})
-document.querySelector('#stopRecod')?.addEventListener('click', () => {
-  ;(async () => {
-    await recorder?.stop()
-    alert('save done')
+
+    startEl.style.visibility = 'hidden'
+    pauseEl.style.visibility = 'visible'
+    continueEl.style.visibility = 'hidden'
   })().catch(console.error)
 })
 
-async function createFileWriter (
+const stopEl = document.querySelector('#stopRecod') as HTMLButtonElement
+stopEl?.addEventListener('click', () => {
+  ; (async () => {
+    await recorder?.stop()
+    alert('save done')
+    startEl.style.visibility = 'visible'
+    pauseEl.style.visibility = 'hidden'
+    continueEl.style.visibility = 'hidden'
+  })().catch(console.error)
+})
+
+const pauseEl = document.querySelector('#pauseRecod') as HTMLButtonElement
+pauseEl?.addEventListener('click', () => {
+  ; (async () => {
+    if (recorder == null) return
+    recorder.pause()
+
+    startEl.style.visibility = 'hidden'
+    pauseEl.style.visibility = 'hidden'
+    continueEl.style.visibility = 'visible'
+  })().catch(console.error)
+})
+
+const continueEl = document.querySelector('#continueRecod') as HTMLButtonElement
+continueEl?.addEventListener('click', () => {
+  ; (async () => {
+    if (recorder == null) return
+    recorder.resume()
+
+    startEl.style.visibility = 'hidden'
+    pauseEl.style.visibility = 'visible'
+    continueEl.style.visibility = 'hidden'
+  })().catch(console.error)
+})
+
+async function createFileWriter(
   extName: string
 ): Promise<FileSystemWritableFileStream> {
   const fileHandle = await window.showSaveFilePicker({

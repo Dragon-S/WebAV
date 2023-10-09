@@ -12,7 +12,73 @@ enum State {
   Stopped = 'stopped'
 }
 
+class RecoderPauseCtrl {
+  // 当前帧的偏移时间，用于计算帧的 timestamp
+  #offsetTime = performance.now()
+
+  // 编码上一帧的时间，用于计算出当前帧的持续时长
+  #lastTime = this.#offsetTime
+
+  // 用于限制 帧率
+  #frameCnt = 0
+
+  // 如果为true，则暂停编码数据
+  // 取消暂停时，需要减去
+  #paused = false
+
+  // 触发暂停的时间，用于计算暂停持续了多久
+  #pauseTime = 0
+
+  constructor() { }
+
+  play() {
+    if (!this.#paused) return
+    this.#paused = false
+
+    this.#offsetTime += performance.now() - this.#pauseTime
+    this.#lastTime += performance.now() - this.#pauseTime
+  }
+
+  pause() {
+    if (this.#paused) return
+    this.#paused = true
+    this.#pauseTime = performance.now()
+  }
+
+  transfrom(frame: VideoFrame, maxFPS: number) {
+    const now = performance.now()
+    const offsetTime = now - this.#offsetTime
+    if (
+      this.#paused ||
+      // 避免帧率超出期望太高
+      (this.#frameCnt / offsetTime) * 1000 > maxFPS
+    ) {
+      frame.close()
+      return
+    }
+
+    const vf = new VideoFrame(frame, {
+      // timestamp 单位 微秒
+      timestamp: offsetTime * 1000,
+      duration: (now - this.#lastTime) * 1000
+    })
+    this.#lastTime = now
+
+    this.#frameCnt += 1
+    frame.close()
+    return {
+      vf,
+      opts: { keyFrame: this.#frameCnt % 30 === 0 }
+    }
+  }
+}
+
+const VIDEO_PAUSE_CTRL = new RecoderPauseCtrl()
+
 let STATE = State.Preparing
+
+// 当前是否处于暂停状态
+let PAUSED = false
 
 let clear: TClearFn | null = null
 self.onmessage = async (evt: MessageEvent) => {
@@ -29,9 +95,16 @@ self.onmessage = async (evt: MessageEvent) => {
       break
     case EWorkerMsg.Stop:
       STATE = State.Stopped
-      await clear?.()
+      clear?.()
       self.postMessage({ type: EWorkerMsg.SafeExit })
       break
+    case EWorkerMsg.Paused:
+      PAUSED = data
+      if (data) {
+        VIDEO_PAUSE_CTRL.pause()
+      } else {
+        VIDEO_PAUSE_CTRL.play()
+      }
   }
 }
 
@@ -45,17 +118,24 @@ function init (opts: IWorkerOpts, onEnded: TClearFn): TClearFn {
     bitrate: opts.bitrate ?? 2_000_000
   })
 
+  const maxFPS = opts.video.expectFPS * 1.1
+
   let stoped = false
   if (opts.streams.video != null) {
-    const encode = encodeVideoFrame(opts.video.expectFPS, recoder.encodeVideo)
     stopEncodeVideo = autoReadStream(opts.streams.video, {
-      onChunk: async vf => {
+      onChunk: async (chunk: VideoFrame) => {
         if (stoped) {
-          vf.close()
+          chunk.close()
           return
         }
-        encode(vf)
-        vf.close()
+        const vfWrap = VIDEO_PAUSE_CTRL.transfrom(chunk, maxFPS)
+        if (vfWrap == null) {
+          chunk.close()
+          return
+        }
+
+        recoder.encodeVideo(vfWrap.vf, vfWrap.opts)
+        chunk.close()
       },
       onDone: () => {}
     })
@@ -63,8 +143,8 @@ function init (opts: IWorkerOpts, onEnded: TClearFn): TClearFn {
 
   if (opts.audio != null && opts.streams.audio != null) {
     stopEncodeAudio = autoReadStream(opts.streams.audio, {
-      onChunk: async ad => {
-        if (stoped) {
+      onChunk: async (ad: AudioData) => {
+        if (stoped || PAUSED) {
           ad.close()
           return
         }
@@ -102,36 +182,4 @@ function init (opts: IWorkerOpts, onEnded: TClearFn): TClearFn {
   }
 
   return exit
-}
-
-function encodeVideoFrame (expectFPS: number, encode: VideoEncoder['encode']) {
-  let frameCount = 0
-  const startTime = performance.now()
-  let lastTime = startTime
-
-  const maxFPS = expectFPS * 1.1
-
-  let frameCnt = 0
-  return (frame: VideoFrame) => {
-    const now = performance.now()
-    const offsetTime = now - startTime
-    // 避免帧率超出期望太高
-    if ((frameCnt / offsetTime) * 1000 > maxFPS) {
-      frame.close()
-      return
-    }
-
-    const vf = new VideoFrame(frame, {
-      // timestamp 单位 微妙
-      timestamp: offsetTime * 1000,
-      duration: (now - lastTime) * 1000
-    })
-    lastTime = now
-
-    encode(vf, { keyFrame: frameCount % 150 === 0 })
-    frameCnt += 1
-    vf.close()
-    frame.close()
-    frameCount += 1
-  }
 }

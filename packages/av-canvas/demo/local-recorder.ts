@@ -296,7 +296,8 @@ document.querySelector('#outputFramerate')?.addEventListener('change', (event: a
   outputFramerate = event.target.value
 })
 
-document.querySelector('#startRecod')?.addEventListener('click', () => {
+const startEl = document.querySelector('#startRecod') as HTMLButtonElement
+startEl?.addEventListener('click', () => {
   ;(async () => {
     const width = outputResolution === '1080P' ? 1920 : 1280
     const height = outputResolution === '1080P' ? 1080 : 720
@@ -319,12 +320,45 @@ document.querySelector('#startRecod')?.addEventListener('click', () => {
     const writer = await createFileWriter('mp4')
     await recorder.start()
     recorder.outputStream?.pipeTo(writer).catch(console.error)
+
+    startEl.style.visibility = 'hidden'
+    pauseEl.style.visibility = 'visible'
+    continueEl.style.visibility = 'hidden'
   })().catch(console.error)
 })
-document.querySelector('#stopRecod')?.addEventListener('click', () => {
+
+const stopEl = document.querySelector('#stopRecod') as HTMLButtonElement
+stopEl?.addEventListener('click', () => {
   ;(async () => {
     await recorder?.stop()
     alert('save done')
+    startEl.style.visibility = 'visible'
+    pauseEl.style.visibility = 'hidden'
+    continueEl.style.visibility = 'hidden'
+  })().catch(console.error)
+})
+
+const pauseEl = document.querySelector('#pauseRecod') as HTMLButtonElement
+pauseEl?.addEventListener('click', () => {
+  ; (async () => {
+    if (recorder == null) return
+    recorder.pause()
+
+    startEl.style.visibility = 'hidden'
+    pauseEl.style.visibility = 'hidden'
+    continueEl.style.visibility = 'visible'
+  })().catch(console.error)
+})
+
+const continueEl = document.querySelector('#resumeRecod') as HTMLButtonElement
+continueEl?.addEventListener('click', () => {
+  ; (async () => {
+    if (recorder == null) return
+    recorder.resume()
+
+    startEl.style.visibility = 'hidden'
+    pauseEl.style.visibility = 'visible'
+    continueEl.style.visibility = 'hidden'
   })().catch(console.error)
 })
 
