@@ -61,11 +61,14 @@ export class AVCanvas {
     height: 1080
   }
 
+  #bgColor = '#333'
+
   constructor (container: HTMLElement | null, opts: {
     resolution: IResolution
     bgColor: string
   }) {
     this.#resolution = opts.resolution
+    this.#bgColor = opts.bgColor
     this.#cvsEl = createInitCvsEl(opts.resolution)
     const ctx = this.#cvsEl.getContext('2d', { alpha: false })
     if (ctx == null) throw Error('canvas context is null')
@@ -112,7 +115,7 @@ export class AVCanvas {
     const loop = (): void => {
       if (this.#destroyed) return
 
-      this.#cvsCtx.fillStyle = "#E3E3E7"
+      this.#cvsCtx.fillStyle = this.#bgColor
       this.#cvsCtx.fillRect(0, 0, opts.resolution.width, opts.resolution.height)
 
       if (this.#layoutType === ILayoutType.SIDEBYSIDE) {
