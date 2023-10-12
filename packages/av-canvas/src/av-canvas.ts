@@ -171,7 +171,8 @@ export class AVCanvas {
         this.#resolution.width - this.#sidebysideSize.w,
         this.#resolution.height)
     } else if (this.#layoutType === ILayoutType.FLOOTING) {
-      this.#layoutParams.floating.camera = new Rect(0, 0,
+      this.#layoutParams.floating.camera = new Rect(0,
+        this.#resolution.height - this.#sidebysideSize.h,
         this.#sidebysideSize.w, this.#sidebysideSize.h)
       this.#layoutParams.floating.display = new Rect(0, 0,
         this.#resolution.width, this.#resolution.height)
