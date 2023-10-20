@@ -118,11 +118,12 @@ export class AVCanvas {
       this.#cvsCtx.fillStyle = this.#bgColor
       this.#cvsCtx.fillRect(0, 0, opts.resolution.width, opts.resolution.height)
 
-      if (this.#layoutType === ILayoutType.SIDEBYSIDE) {
-        this.#cvsCtx.fillStyle = "#F5F5F8"
-        this.#cvsCtx.fillRect(opts.resolution.width - this.#sidebysideSize.w,
-          0, this.#sidebysideSize.w, opts.resolution.height)
-      }
+      // 暂时使用统一背景色
+      // if (this.#layoutType === ILayoutType.SIDEBYSIDE) {
+      //   this.#cvsCtx.fillStyle = "#F5F5F8"
+      //   this.#cvsCtx.fillRect(opts.resolution.width - this.#sidebysideSize.w,
+      //     0, this.#sidebysideSize.w, opts.resolution.height)
+      // }
 
       this.#render()
     }

@@ -3,7 +3,7 @@ import { AVRecorder } from 'avrecorder-recorder'
 import { ILayoutType } from '../src/types'
 
 const avCvs = new AVCanvas(document.querySelector('#app') as HTMLElement, {
-  bgColor: '#333',
+  bgColor: '#000',
   resolution: {
     width: 1920,
     height: 1080
